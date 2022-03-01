@@ -1,5 +1,4 @@
-from ast import Import
-import sys, os
+import sys
 
 if sys.platform == 'linux' and '/usr/lib64/python3.6' not in sys.path:
     sys.path.append('/usr/lib64/python3.6')
