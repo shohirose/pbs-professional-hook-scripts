@@ -19,4 +19,4 @@ except Exception as err:
         msg = list(TracebackException.from_exception(err).format())
         event.reject(f'{event.hook_name} hook failed: {msg}')
     except ModuleNotFoundError:
-        event.reject(f'{event.hook_name} hook failed: {sys.exc_info()[:2]}')
+        event.reject(f'{event.hook_name} hook failed: {err}')
