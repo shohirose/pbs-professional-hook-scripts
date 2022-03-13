@@ -10,7 +10,7 @@ import pbs
 import subprocess as sp
 from pathlib import Path
 import json
-from typing import Dict, Any
+from typing import Dict
 from traceback import TracebackException
 
 
