@@ -82,10 +82,12 @@ class HookConfig:
         delaying_time (float): Delaying time in seconds when licenses are not available. Default is 60 seconds.
     """
 
-    def __init__(self):
-        path = Path(pbs.hook_config_filename)
-
-        with open(path, mode="r") as f:
+    def __init__(self, config_file: Path):
+        """
+        Args:
+            config_file (Path): Path to the config file in JSON format
+        """
+        with open(config_file, mode="r") as f:
             j = json.load(f)
             self.resources: Dict[str, str] = j["resources"]
             self.lmutil = Path(j["lmutil"])
@@ -102,7 +104,7 @@ try:
     event = pbs.event()
     job = event.job
 
-    config = HookConfig()
+    config = HookConfig(Path(pbs.hook_config_filename))
     resources = dict(filter(lambda x: x[1] in job.Resource_List, config.resources.items()))
 
     # Do not apply this hook if resources are not found.
@@ -132,7 +134,7 @@ try:
 
     with open(config.stamp_file, mode="w") as f:
         f.write("Check")
-        
+
     event.accept("Licenses are available. Accepting the job.")
 
 except SystemExit:
