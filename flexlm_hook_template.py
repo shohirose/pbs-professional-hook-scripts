@@ -22,13 +22,15 @@ class FlexlmLicenseManager:
         servers (list[str]): License servers
         daemon (str): License daemon
         timeout (int): Time out in seconds for a license query
+        encoding (str): Encoding for stdout and stderr
     """
 
-    def __init__(self, lmutil: Path, server: str, daemon: str, timeout: int = 5):
+    def __init__(self, lmutil: Path, server: str, daemon: str, timeout: int = 5, encoding: str = "utf-8"):
         self.lmutil = lmutil
         self.server = server
         self.daemon = daemon
         self.timeout = timeout
+        self.encoding = encoding
 
     @staticmethod
     def parse_query(lines: str, feature: str) -> int:
@@ -45,7 +47,7 @@ class FlexlmLicenseManager:
             f'Users of {feature}:  \(Total of (\d+) licenses?? issued;  Total of (\d+) licenses?? in use\)')
         m = regex.search(lines)
 
-        if m is None:
+        if not m:
             raise ValueError(
                 f'License feature is not found in Flexlm: {feature}')
 
@@ -65,7 +67,7 @@ class FlexlmLicenseManager:
         cmd = [str(self.lmutil), 'lmstat', '-c', self.server,
                '-f', feature, '-S', self.daemon]
         result = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE,
-                        encoding='utf-8', timeout=self.timeout, check=True)
+                        encoding=self.encoding, timeout=self.timeout, check=True)
         return self.parse_query(result.stdout, feature)
 
 
@@ -105,7 +107,8 @@ try:
     job = event.job
 
     config = HookConfig(Path(pbs.hook_config_filename))
-    resources = dict(filter(lambda x: x[1] in job.Resource_List, config.resources.items()))
+    resources = dict(
+        filter(lambda x: x[1] in job.Resource_List, config.resources.items()))
 
     # Do not apply this hook if resources are not found.
     if not resources:
