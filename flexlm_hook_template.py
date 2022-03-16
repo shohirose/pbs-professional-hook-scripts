@@ -118,9 +118,6 @@ try:
             event.reject(
                 "Too little time passed from the last run. Delaying the job.")
 
-    with open(config.stamp_file, mode="w") as f:
-        f.write("Check")
-
     flexlm = FlexlmLicenseManager(
         lmutil=config.lmutil, server=config.license_server, daemon=config.license_dameon)
 
@@ -133,6 +130,9 @@ try:
             event.reject(
                 f"License '{feature}' is not available. Delaying the job.")
 
+    with open(config.stamp_file, mode="w") as f:
+        f.write("Check")
+        
     event.accept("Licenses are available. Accepting the job.")
 
 except SystemExit:
