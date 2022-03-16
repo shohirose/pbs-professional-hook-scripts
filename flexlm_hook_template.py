@@ -99,14 +99,17 @@ class HookConfig:
 
 try:
     """Main Hook Script"""
-    config = HookConfig()
-
     event = pbs.event()
     job = event.job
 
-    if not any(resource in job.Resource_List for resource in config.resources.values()):
+    config = HookConfig()
+    resources = dict(filter(lambda x: x[1] in job.Resource_List, config.resources.items()))
+
+    # Do not apply this hook if resources are not found.
+    if not resources:
         sys.exit()
 
+    # Check if enough time has passed to avoid the racing condition for a license query.
     if config.stamp_file.exists():
         elapsed_time = time.time() - os.stat(config.stamp_file).st_mtime
         if elapsed_time < config.interval_time:
@@ -121,18 +124,14 @@ try:
     flexlm = FlexlmLicenseManager(
         lmutil=config.lmutil, server=config.license_server, daemon=config.license_dameon)
 
-    for feature, resource in config.resources.items():
-        if resource not in job.Resource_List:
-            continue
-
+    for feature, resource in resources.items():
         required_num = job.Resource_List[resource]
         available_num = flexlm.get_available_num(feature)
-
         if available_num < required_num:
             job.Execution_Time = pbs.duration(
                 time.time() + config.delaying_time)
             event.reject(
-                f"License '{feature}' is not available. Delying the job.")
+                f"License '{feature}' is not available. Delaying the job.")
 
     event.accept("Licenses are available. Accepting the job.")
 
