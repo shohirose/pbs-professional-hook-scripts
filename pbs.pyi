@@ -488,6 +488,6 @@ def event() -> _Event: ...
 def server() -> _Server: ...
 
 
-hook_config_filename: str | None
+hook_config_filename: str
 
 pbs_conf: Dict[str, Any]
